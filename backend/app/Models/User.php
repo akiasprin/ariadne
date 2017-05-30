@@ -21,7 +21,13 @@ class User extends Authenticatable
 
     public function goods()
     {
-        return $this->hasMany('App\Models\Good', 'user_id');
+        return $this->hasMany('App\Models\Good', 'user_id')
+            ->select(
+            [
+                'id', 'title', 'desc', 'cover', 'price', 'total', 'unit', 'province', 'city',
+                'state', 'views', 'sales', 'quality', 'purchased_at', 'created_at', 'updated_at',
+                'user_id'
+            ]);
     }
 
     public function addresses()
@@ -46,7 +52,6 @@ class User extends Authenticatable
 
     public function comments()
     {
-        return $this
-            ->hasMany('App\Models\Comment', 'user_id');
+        return $this->hasMany('App\Models\Comment', 'user_id');
     }
 }

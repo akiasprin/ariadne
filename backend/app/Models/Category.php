@@ -14,8 +14,13 @@ class Category extends Model
 
     public function goods()
     {
-        return $this
-            ->belongsToMany('App\Models\Good', 'category_relationships');
+        return $this->belongsToMany('App\Models\Good', 'category_relationships')->select(
+            [
+                'id', 'title', 'desc', 'cover', 'price', 'total', 'unit', 'province', 'city',
+                'state', 'views', 'sales', 'quality', 'purchased_at', 'created_at', 'updated_at',
+                'user_id'
+            ]
+        );
     }
 
 }

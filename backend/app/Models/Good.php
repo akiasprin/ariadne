@@ -22,14 +22,12 @@ class Good extends Model
 
     public function categories()
     {
-        return $this
-            ->belongsToMany('App\Models\Category', 'category_relationships');
+        return $this->belongsToMany('App\Models\Category', 'category_relationships');
     }
 
     public function tags()
     {
-        return $this
-            ->belongsToMany('App\Models\Tag', 'tag_relationships');
+        return $this->belongsToMany('App\Models\Tag', 'tag_relationships');
     }
 
     public function orders()

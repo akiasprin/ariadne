@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Address;
 
 use App\Exceptions\PermissionDeniedException;
+use App\Http\Utilities\RedisCacheHelper;
 use App\Models\Address;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -18,15 +19,20 @@ class AddressController extends Controller
         $skip = $request->get('skip') ? $request->get('skip') : 0;
         $take = $request->get('take') ? $request->get('take') : 10;
         $user = $request->get('user') ? $request->get('user') : 0;
-        $result = Address::with('user');
-        if ($user) {
-            $result = $result->where('user_id', $user);
-        }
-        $total = $result->count();
-        $result = $result->orderBy($by, $desc)->skip($skip)->take($take);
+        $data = RedisCacheHelper::redis('addresses:'.$user.':'.$by.':'.$desc.':'.$skip.':'.$take,
+            function () use ($by, $desc, $skip, $take, $user) {
+                $result = Address::with('user');
+                if ($user) {
+                    $result = $result->where('user_id', $user);
+                }
+                $total = $result->count();
+                $result = $result->orderBy($by, $desc)->skip($skip)->take($take)->get();
+                return ['result' => $result,
+                        'total' => $total];
+            });
         return Response::json([
             'msg'  => '地址信息获取成功.',
-            'data' => ['result' => $result->get(), 'total' => $total],
+            'data' => $data,
             'code' => 200,
         ], 200);
     }
@@ -38,6 +44,10 @@ class AddressController extends Controller
             $address->fill($request->json()->all());
             $address->user_id = $request->user('api')->id;
             $address->save();
+            RedisCacheHelper::clean([
+                'addresses:0*',
+                'addresses:'.$address->user_id.'*'
+            ]);
         } catch (QueryException $e) {
             return Response::json([
                 'msg' => '地址创建失败.',
@@ -53,7 +63,10 @@ class AddressController extends Controller
 
     public function show($id)
     {
-        $address = Address::with('user')->find($id);
+        $address = RedisCacheHelper::redis('address:'.$id,
+            function () use ($id) {
+                return  Address::with('user')->find($id);
+            });
         return Response::json($address, 200);
     }
 
@@ -63,6 +76,11 @@ class AddressController extends Controller
         $address->fill($request->json()->all());
         try {
             $address->save();
+            RedisCacheHelper::clean([
+                'address:'.$id.'*',
+                'addresses:0*',
+                'addresses:'.$address->user_id.'*'
+            ]);
         } catch (QueryException $e) {
             return Response::json([
                 'msg' => '地址更新失败.',
@@ -85,6 +103,11 @@ class AddressController extends Controller
                 throw new PermissionDeniedException();
             }
             $address = Address::destroy($id);
+            RedisCacheHelper::clean([
+                'address:'.$id.'*',
+                'addresses:0*',
+                'addresses:'.$request->user('api')->id.'*'
+            ]);
         } catch (PermissionDeniedException $e) {
             return Response::json([
                 'msg' => '操作失败, 权限不足.',

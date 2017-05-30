@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Order;
 
 use App\Exceptions\OrderWrongStateException;
+use App\Http\Utilities\RedisCacheHelper;
 use App\Models\Order;
 use App\Exceptions\GoodUnavailableException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Response;
 
 class OrderController extends Controller
@@ -23,25 +25,30 @@ class OrderController extends Controller
         $customer = $request->get('customer') ? $request->get('customer') : 0;
         $merchant = $request->get('merchant') ? $request->get('merchant') : 0;
         $state = $request->get('state') ? $request->get('state') : 4095;
-        $result = Order::with('goods', 'address', 'customer', 'merchant');
-        if ($customer) {
-            $result = $result->where('customer_id', $customer);
-        }
-        if ($merchant) {
-            $result = $result->where('merchant_id', $merchant);
-        }
-        if ($state != 4095) {
-            for ($i = 0; $i < 12; $i++) {
-                if (!($state & (1 << $i))) {
-                    $result = $result->where('state', '!=',$i + 1);
+        $data = RedisCacheHelper::redis('orders:'.$customer.':'.$merchant.':'.$by.':'.$desc.':'.$skip.':'.$take
+            .':'.$state, function () use ($by, $desc, $skip, $take, $customer, $merchant, $state) {
+            $result = Order::with('goods', 'address', 'customer', 'merchant');
+            if ($customer) {
+                $result = $result->where('customer_id', $customer);
+            }
+            if ($merchant) {
+                $result = $result->where('merchant_id', $merchant);
+            }
+            if ($state != 4095) {
+                for ($i = 0; $i < 12; $i++) {
+                    if (!($state & (1 << $i))) {
+                        $result = $result->where('state', '!=', $i + 1);
+                    }
                 }
             }
-        }
-        $total = $result->count();
-        $result = $result->orderBy($by, $desc)->skip($skip)->take($take);
+            $total = $result->count();
+            $result = $result->orderBy($by, $desc)->skip($skip)->take($take)->get();
+            return ['result' => $result,
+                    'total' => $total];
+        });
         return Response::json([
             'msg'  => '订单信息获取成功.',
-            'data' => ['result' => $result->get(), 'total' => $total],
+            'data' => $data,
             'code' => 200,
         ], 200);
     }
@@ -90,6 +97,10 @@ class OrderController extends Controller
                     'state' => 1,
                     'operated_user_id' => $request->user()->id,
                 ]);
+                RedisCacheHelper::clean([
+                    'orders:'.$order->customer_id.'*',
+                    'orders:'.'0:'.$order->merchant_id.'*'
+                ]);
             });
         } catch (GoodUnavailableException $e) {
             return Response::json([
@@ -112,10 +123,12 @@ class OrderController extends Controller
 
     public function show($id)
     {
-        $order = Order::with('goods', 'address', 'timelines', 'timelines.user')->find($id);
+        $result = RedisCacheHelper::redis('order:'.$id, function () use ($id) {
+            return Order::with('goods', 'address', 'timelines', 'timelines.user')->find($id);
+        });
         return Response::json([
             'msg' => '订单获取成功.',
-            'data' => $order,
+            'data' => $result,
             'code' => 200,
         ], 200);
     }
@@ -150,6 +163,11 @@ class OrderController extends Controller
                 ]);
                 $order->save();
             });
+            RedisCacheHelper::clean([
+                'order:'.$id,
+                'orders:'.$order->customer_id.'*',
+                'orders:'.'0:'.$order->merchant_id.'*'
+            ]);
         } catch (OrderWrongStateException $e) {
             return Response::json([
                 'msg'  => '订单状态更新逻辑检查异常.',

@@ -17,16 +17,15 @@ class GoodController extends Controller
 
     public function index(Request $request)
     {
-        $total = 0;
         $by = $request->get('by') ? $request->get('by') : 'id';
         $desc = $request->get('desc') ? 'desc' : 'asc';
         $skip = $request->get('skip') ? $request->get('skip') : 0;
         $take = $request->get('take') ? $request->get('take') : 10;
         $user = $request->get('user') ? $request->get('user') : 0;
         $state = $request->get('state') ? $request->get('state') : 15;
-        $result = RedisCacheHelper::redis(
-            'goods:'.$by.':'.$desc.':'.$skip.':'.$take.':'.$user.':'.$state, function ()
-        use ($by, $desc, $skip, $take, $user, $state, &$total) {
+        $data = RedisCacheHelper::redis(
+            'goods:'.$user.':'.$by.':'.$desc.':'.$skip.':'.$take.':'.$state,
+            function () use ($by, $desc, $skip, $take, $user, $state) {
             $result = Good::with('user', 'categories');
             if ($user) {
                 $result = $result->where('user_id', $user);
@@ -39,43 +38,48 @@ class GoodController extends Controller
                 }
             }
             $total = $result->count();
-            return $result->orderBy($by, $desc)->skip($skip)->take($take)->get([
-                'id', 'title', 'desc', 'cover', 'price', 'unit', 'province', 'city',
+            $result = $result->orderBy($by, $desc)->skip($skip)->take($take)->get([
+                'id', 'title', 'desc', 'cover', 'price', 'total', 'unit', 'province', 'city',
                 'state', 'views', 'sales', 'quality', 'purchased_at', 'created_at', 'updated_at',
                 'user_id'
-            ]);
+            ]); //为了不查询content
+            return ['result' => $result,
+                    'total' => $total];
         });
         return Response::json([
             'msg' => '商品信息获取成功.',
-            'data' => ['result' => $result, 'total' => $total],
+            'data' => $data,
             'code' => 200,
         ], 200);
     }
 
     public function store(Request $request)
     {
+        $good = new Good;
+        $categories = $request->json('categories');
+        $good->fill($request->json()->all());
+        $good->user_id = $request->user('api')->id;
+        if ($good->purchased_at) {
+            $good->purchased_at = date(
+                'Y-m-d', strtotime($good->purchased_at));
+        } else if ($good->quality == 2) {
+            return Response::json([
+                'msg' => '未填写购置日期',
+                'code' => 400,
+            ], 400);
+        } else {
+            $good->purchased_at = null;
+        }
         try {
-            $good = new Good;
-            $good->fill($request->json()->all());
-            $good->user_id = $request->user('api')->id;
-            if ($good->purchased_at) {
-                $good->purchased_at = date(
-                    'Y-m-d', strtotime($good->purchased_at));
-            } else if ($good->quality == 2) {
-                return Response::json([
-                    'msg' => '未填写购置日期',
-                    'code' => 400,
-                ], 400);
-            } else {
-                $good->purchased_at = null;
-            }
-            DB::transaction(function () use ($request, $good) {
+            DB::transaction(function () use ($good, $categories) {
                 $good->save();
-                $good->categories()->sync($request->json('categories'));
+                $good->categories()->sync($categories);
             });
-            Redis::delete(Redis::keys('goods'));
+            RedisCacheHelper::clean([
+                'goods:0*',
+                'goods:'.$good->user_id.'*'
+            ]);
         } catch (QueryException $e) {
-            error_log($e);
             return Response::json([
                 'msg' => '商品信息创建失败.',
                 'code' => 400,
@@ -99,7 +103,6 @@ class GoodController extends Controller
                 });
             return $good;
         });
-
         return Response::json([
             'msg' => '商品信息获取成功.',
             'data' => $good,
@@ -136,7 +139,11 @@ class GoodController extends Controller
                 $good->categories()->sync($request->json('categories'));
                 $good->save();
             });
-            Redis::delete('goods:*');
+            RedisCacheHelper::clean([
+                'good:'.$id,
+                'goods:0*',
+                'goods:'.$good->user_id.'*'
+                ]);
         } catch (QueryException $e) {
             return Response::json([
                 'msg' => '商品更新失败.',

@@ -1,7 +1,3 @@
 ### Ariadne
 
-二手交易网
-
-Laravel and Vue
-
-#### 
+一只P2P交易系统(Laravel and Vue)

@@ -9,14 +9,22 @@ use Throwable;
 
 class RedisCacheHelper
 {
-    static function redis(String $key, Closure $callback) {
+    static function is_not_json($str) {
+        return is_null(json_decode($str));
+    }
+
+    static function redis(String $key, Closure $callback)
+    {
         $result = null;
         try {
             if (Redis::exists($key)) {
                 $result = json_decode(Redis::get($key));
             } else {
                 $result = $callback();
-                Redis::set($key, $result);
+                if (gettype($result) != 'string' && gettype($result) != 'object')
+                    Redis::set($key, json_encode($result));
+                else
+                    Redis::set($key, $result);
             }
         } catch (Exception $e) {
             throw $e;
@@ -24,6 +32,14 @@ class RedisCacheHelper
             throw $e;
         }
         return $result;
+    }
 
+    static function clean($array)
+    {
+        foreach ($array as $key) {
+            foreach (Redis::keys($key) as $item) {
+                Redis::expire($item, -1);
+            }
+        }
     }
 }

@@ -14,8 +14,7 @@ class Tag extends Model
 
     public function goods()
     {
-        return $this
-            ->belongsToMany('App\Models\Goods', 'tags');
+        return $this->belongsToMany('App\Models\Goods', 'tags');
     }
 
 }

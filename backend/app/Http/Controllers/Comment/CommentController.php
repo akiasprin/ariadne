@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Comment;
 
 use App\Exceptions\PermissionDeniedException;
+use App\Http\Utilities\RedisCacheHelper;
 use App\Models\Comment;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Response;
 
 class CommentController extends Controller
@@ -18,15 +20,21 @@ class CommentController extends Controller
         $skip = $request->get('skip') ? $request->get('skip') : 0;
         $take = $request->get('take') ? $request->get('take') : 10;
         $user = $request->get('user') ? $request->get('user') : 0;
-        $result = Comment::with('user', 'good');
-        if ($user) {
-            $result = $result->where('user_id', $user);
-        }
-        $total = $result->count();
-        $result = $result->orderBy($by, $desc)->skip($skip)->take($take);
+        $data = RedisCacheHelper::redis(
+            'comments:'.$user.':'.$by.':'.$desc.':'.$skip.':'.$take,
+            function () use ($by, $desc, $skip, $take, $user) {
+                $result = Comment::with('user', 'good');
+                if ($user) {
+                    $result = $result->where('user_id', $user);
+                }
+                $total = $result->count();
+                $result = $result->orderBy($by, $desc)->skip($skip)->take($take)->get();
+                return ['result' => $result,
+                        'total' => $total];
+            });
         return Response::json([
             'msg'  => '评论获取成功.',
-            'data' => ['result' => $result->get(), 'total' => $total],
+            'data' => $data,
             'code' => 200,
         ], 200);
     }
@@ -39,6 +47,10 @@ class CommentController extends Controller
             $comment->user_id = $request->user('api')->id;
             $comment->save();
             $comment->user; $comment->good;
+            RedisCacheHelper::clean([
+                'comments:0*',
+                'comments:'.$comment->user_id.'*'
+            ]);
         } catch (QueryException $e) {
             return Response::json([
                 'msg'  => '评论发表失败.',
@@ -54,8 +66,15 @@ class CommentController extends Controller
 
     public function show($id)
     {
-        $comment = Comment::with('user', 'good')->find($id);
-        return Response::json($comment, 200);
+        $comment = RedisCacheHelper::redis('comment:'.$id,
+            function () use ($id) {
+                return Comment::with('user', 'good')->find($id);
+            });
+        return Response::json([
+            'msg' => '评论获取成功.',
+            'data' => $comment,
+            'code' => 200,
+        ], 200);
     }
 
     public function update(Request $request, $id)
@@ -69,6 +88,11 @@ class CommentController extends Controller
             }
             $comment->save();
             $comment->user; $comment->good;
+            RedisCacheHelper::clean([
+                'comment:'.$id,
+                'comments:0*',
+                'comments:'.$comment->user_id.'*'
+            ]);
         } catch (PermissionDeniedException $e) {
             return Response::json([
                 'msg'  => '操作失败, 权限不足.',
@@ -96,6 +120,11 @@ class CommentController extends Controller
                 throw new PermissionDeniedException();
             }
             $comment = Comment::destroy($id);
+            RedisCacheHelper::clean([
+                'comment:'.$id,
+                'comments:0*',
+                'comments:'.$request->user('api')->id.'*'
+            ]);
         } catch (PermissionDeniedException $e) {
             return Response::json([
                 'msg' => '操作失败, 权限不足.',

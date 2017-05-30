@@ -19,13 +19,18 @@ class Order extends Model
     {
         return $this
             ->belongsToMany('App\Models\Good', 'order_details')
-            ->withPivot('quantity');
+            ->withPivot('quantity')
+            ->select(
+                [
+                    'id', 'title', 'desc', 'cover', 'price', 'total', 'unit', 'province', 'city',
+                    'state', 'views', 'sales', 'quality', 'purchased_at', 'created_at', 'updated_at',
+                    'user_id'
+                ]);
     }
 
     public function timelines()
     {
-        return $this
-            ->hasMany('App\Models\OrderTimeline', 'order_id');
+        return $this->hasMany('App\Models\OrderTimeline', 'order_id');
     }
 
     public function address()
