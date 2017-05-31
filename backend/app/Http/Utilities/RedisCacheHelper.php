@@ -13,7 +13,7 @@ class RedisCacheHelper
         return is_null(json_decode($str));
     }
 
-    static function redis(String $key, Closure $callback)
+    static function redis($key, Closure $callback)
     {
         $result = null;
         try {

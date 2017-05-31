@@ -1,6 +1,14 @@
 import fetch from 'common/fetch'
 let user_uri = '/user/'
 
+export function sendcode(data) {
+  return fetch({
+    url: user_uri + 'sendcode',
+    method: 'post',
+    data
+  })
+}
+
 export function register(data) {
   return fetch({
     url: user_uri + 'register',

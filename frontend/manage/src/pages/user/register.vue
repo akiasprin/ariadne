@@ -9,19 +9,20 @@
             </div>
             <div class="register-form">
                 <el-form ref="form" :model="form" :rules="rules" label-width="0">
-                    <el-form-item prop="email" class="register-item">
-                        <el-input v-model="form.email" placeholder="请输入邮箱地址：" class="form-input"
-                                  :autofocus="true"></el-input>
+                    <el-form-item prop="name" class="register-item">
+                        <el-input type="name" v-model="form.name" placeholder="请输入昵称：" class="form-input"></el-input>
+                    </el-form-item>
+                    <el-form-item prop="phone" class="register-item">
+                        <el-input type="phone" v-model="form.phone" placeholder="请输入手机号码："
+                                  class="form-input" style="max-width: 190px"></el-input>
+                      <el-button @click="send_code">发送验证码</el-button>
                     </el-form-item>
                     <el-form-item prop="password" class="register-item">
                         <el-input type="password" v-model="form.password" placeholder="请输入账户密码："
                                   class="form-input"></el-input>
                     </el-form-item>
-                    <el-form-item prop="name" class="register-item">
-                        <el-input type="name" v-model="form.name" placeholder="请输入昵称：" class="form-input"></el-input>
-                    </el-form-item>
-                    <el-form-item prop="phone" class="register-item">
-                        <el-input type="phone" v-model="form.phone" placeholder="请输入联系电话："
+                    <el-form-item prop="code" class="register-item">
+                        <el-input type="code" v-model="form.code" placeholder="请输入验证码："
                                   class="form-input"></el-input>
                     </el-form-item>
                     <el-form-item class="register-item">
@@ -35,8 +36,10 @@
 <script type="text/javascript">
   import {mapActions} from 'vuex'
   import {SET_USER_INFO, SET_TOKEN} from 'store/actions/type'
+  import ElButton from "../../../node_modules/element-ui/packages/button/src/button";
 
   export default{
+    components: {ElButton},
     data(){
       return {
         form: {
@@ -61,6 +64,13 @@
         set_token: SET_TOKEN
       }),
       //提交
+      send_code() {
+        this.$fetch.user.sendcode(this.form)
+          .then(() => {
+          })
+          .catch(() => {
+          })
+      },
       submit_form() {
         this.$refs.form.validate((valid) => {
           if (!valid) return false

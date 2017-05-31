@@ -29,7 +29,7 @@ class CreateGoodsTable extends Migration
             $table->integer('sales')->default(0);
             $table->integer('quality');
             $table->integer('user_id')->unsigned();
-            $table->foreign('user_idZ')->references('id')->on('users');
+            $table->foreign('user_id')->references('id')->on('users');
             $table->timestamp('purchased_at')->nullable();
             $table->timestamps();
         });

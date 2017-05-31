@@ -11,13 +11,18 @@ class User extends Authenticatable
     use HasApiTokens, Notifiable;
 
     protected $fillable = [
-        'email', 'name', 'password', 'phone',
-        'sign', 'curr_login_at', 'last_login_at'
+        'name', 'sign',
+        'curr_login_at', 'last_login_at'
     ];
 
     protected $hidden = [
-        'password', 'remember_token', 'curr_login_at'
+        'password', 'curr_login_at'
     ];
+
+    public function findForPassport($username)
+    {
+        return $this->where('phone', $username)->first();
+    }
 
     public function goods()
     {

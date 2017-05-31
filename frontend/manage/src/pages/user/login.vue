@@ -9,8 +9,8 @@
             </div>
             <div class="login-form">
                 <el-form ref="form" :model="form" :rules="rules" label-width="0">
-                    <el-form-item prop="email" class="login-item">
-                        <el-input v-model="form.email" placeholder="邮箱地址" class="form-input"
+                    <el-form-item prop="phone" class="login-item">
+                        <el-input v-model="form.phone" placeholder="手机号码" class="form-input"
                                   :autofocus="true"></el-input>
                     </el-form-item>
                     <el-form-item prop="password" class="login-item">
@@ -33,11 +33,11 @@
     data(){
       return {
         form: {
-          email: null,
+          phone: null,
           password: null
         },
         rules: {
-          email: [{required: true, message: '请输入邮箱地址！', trigger: 'blur'}],
+          phone: [{required: true, message: '请输入手机号码！', trigger: 'blur'}],
           password: [{required: true, message: '请输入账户密码！', trigger: 'blur'}]
         },
         load_data: false

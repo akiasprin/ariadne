@@ -2,7 +2,6 @@
 
 namespace App\Http\Utilities;
 
-
 use Illuminate\Support\Facades\Cookie;
 use Optimus\ApiConsumer\Facade\ApiConsumer;
 

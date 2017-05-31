@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Tag;
 use App\Models\Taxonomy;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -22,10 +23,17 @@ class ExampleTest extends TestCase
      */
     public function testBasicTest()
     {
-        $result = Good::with('categories')->find(2);
-        $result->categories()->sync([2, 3, 9]);
-
-        echo $result;
+        $name = '学院君';
+        $flag = Mail::raw('这是一封测试邮件', function ($message) {
+            $to = '1009303339@qq.com';
+            $message->to($to)->subject('测试邮件');
+        });
+        if($flag){
+            echo '发送邮件成功，请查收！';
+        }else{
+            echo '发送邮件失败，请重试！';
+        }
+        echo $flag;
     }
 
 }

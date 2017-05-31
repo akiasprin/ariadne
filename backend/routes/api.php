@@ -30,6 +30,7 @@ Route::group(['prefix' => 'user','namespace' => 'User'], function ($router)
 {
     $router->post('register', 'UserController@register');
     $router->post('login', 'UserController@login');
+    $router->post('sendcode', 'UserController@sendRegCode');
     $router->post('logout', 'UserController@logout')->middleware('auth:api');
 });
 
