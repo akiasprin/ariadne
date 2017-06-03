@@ -21,17 +21,20 @@ Route::group(['middleware' => 'auth:api'], function()
 });
 
 Route::resource('/category', 'Category\CategoryController');
-Route::resource('/good', 'Good\GoodController');
-Route::resource('/user', 'User\UserController');
-
 Route::resource('/comment', 'Comment\CommentController');
+Route::resource('/good', 'Good\GoodController');
+
+Route::resource('/cart', 'Cart\CartController');
 
 Route::group(['prefix' => 'user','namespace' => 'User'], function ($router)
 {
+    $router->post('sendcode', 'UserController@sendRegCode');
     $router->post('register', 'UserController@register');
     $router->post('login', 'UserController@login');
-    $router->post('sendcode', 'UserController@sendRegCode');
     $router->post('logout', 'UserController@logout')->middleware('auth:api');
+    $router->get('', 'UserController@index');
+    $router->get('{id}', 'UserController@show');
+    $router->post('{id}', 'UserController@modify')->middleware('auth:api');
 });
 
 Route::get('/', function () {

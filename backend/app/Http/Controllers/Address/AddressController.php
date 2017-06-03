@@ -72,15 +72,24 @@ class AddressController extends Controller
 
     public function update(Request $request, $id)
     {
-        $address = Address::find($id);
-        $address->fill($request->json()->all());
         try {
+            $address = Address::find($id);
+            if ($request->user('api')->id !=
+                $address->user_id) {
+                throw new PermissionDeniedException();
+            }
+            $address->fill($request->json()->all());
             $address->save();
             RedisCacheHelper::clean([
                 'address:'.$id.'*',
                 'addresses:0*',
                 'addresses:'.$address->user_id.'*'
             ]);
+        } catch (PermissionDeniedException $e) {
+            return Response::json([
+                'msg' => '操作失败, 权限不足.',
+                'code' => 400,
+            ], 400);
         } catch (QueryException $e) {
             return Response::json([
                 'msg' => '地址更新失败.',

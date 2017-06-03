@@ -52,23 +52,34 @@ class UserController extends Controller
     public function show($id)
     {
         $user = User::find($id);
-        return Response::json($user, 200);
+        return Response::json([
+            'msg'  => '账户信息获取成功.',
+            'data' => $user,
+            'code' => 200,
+        ], 200);
     }
 
     public function modify(Request $request, $id)
     {
         $user = User::find($id);
-        $user->fill($request->json()->all());
+        $user->name = $request->json('name');
+        $user->sign = $request->json('sign');
+        $user->email = $request->json('email');
+        $user->avatar = Gravatar::get($user->email);
+        if ($request->json('password')) {
+            $user->password = bcrypt($request->json('password'));
+        }
         try {
             $user->save();
         } catch (QueryException $e) {
             return Response::json([
-                'msg' => '账户信息更新失败.',
+                'msg'  => '账户信息更新失败.',
                 'code' => 400,
             ], 400);
         }
         return Response::json([
-            'msg' => '账户信息更新成功.',
+            'msg'  => '账户信息更新成功.',
+            'data' => $user,
             'code' => 200,
         ], 200);
     }
@@ -203,7 +214,7 @@ class UserController extends Controller
     public function logout(Request $request)
     {
         $accessToken = $request->user('api')->token();
-
+        error_log($accessToken);
         $refreshToken = DB::table('oauth_refresh_tokens')
             ->where('access_token_id', $accessToken->id)
             ->update([
@@ -215,7 +226,7 @@ class UserController extends Controller
         Cookie::queue(Cookie::forget('refreshToken'));
         return Response::json([
             'msg' => '注销成功.',
-            'code' => 202,
+            'code' => 201,
         ], 200);
     }
 

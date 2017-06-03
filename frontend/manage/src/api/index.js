@@ -4,6 +4,7 @@ import * as category from './category'
 import * as comment from './comment'
 import * as order from './order'
 import * as address from './address'
+import * as cart from './cart'
 
 const apiObj = {
   category,
@@ -12,6 +13,7 @@ const apiObj = {
   user,
   comment,
   address,
+  cart,
 }
 
 const install = function (Vue) {

@@ -12,7 +12,6 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name', 'sign',
-        'curr_login_at', 'last_login_at'
     ];
 
     protected $hidden = [
@@ -42,7 +41,9 @@ class User extends Authenticatable
 
     public function cart()
     {
-        return $this->belongsToMany('App\Models\Good', 'carts');
+        return $this
+            ->belongsToMany('App\Models\Good', 'carts')
+            ->withPivot('quantity');
     }
 
     public function shopping_orders()

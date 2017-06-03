@@ -12,7 +12,7 @@
 
     <div class="panel-body">
       <el-table
-        :data="tableData"
+        :data="table"
         v-loading="load_data"
         element-loading-text="拼命加载中.."
         border>
@@ -88,9 +88,10 @@
           label="操作"
           width="100">
           <template scope="props">
-            <router-link :to="{name: 'salesGoodsSave', params: {id: props.row.id}}" tag="span">
+            <router-link :to="{name: 'salesGoodsSave', params: {id: props.row.id}}" tag="span" v-if="props.row.state!=2">
               <el-button type="info" size="small" icon="edit">修改</el-button>
             </router-link>
+            <el-button type="danger" size="small" icon="edit" v-if="props.row.state==2" @click="on_off_sheleve(props.row)">下架</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -121,20 +122,17 @@
   import {panelTitle, bottomToolBar} from 'components'
   import {mapGetters, mapActions} from 'vuex'
   import {GET_USER_INFO} from 'store/getters/type'
-  import ElTag from "../../../node_modules/element-ui/packages/tag/src/tag";
   const stateOptions = ['草稿', '在售', '缺货', '下架']
   const stateOptionsMap = {'草稿': 1, '在售': 2, '缺货': 4, '下架': 8}
   const stateTagTypes = ['gray', 'success', 'warning', 'danger']
   export default{
-
-
-    data(){
+    data() {
       return {
-        stateVal: 3,
-        checkedStates: ['草稿', '在售'],
+        checkedStates: ['草稿', '在售', '缺货', '下架'],
         States: stateOptions,
         Type: stateTagTypes,
-        tableData: null,
+        table: null,
+        stateVal: 15,
         currentPage: 1,
         skip: 0,
         total: 0,
@@ -148,15 +146,25 @@
       })
     },
     components: {
-      ElTag,
       panelTitle,
       bottomToolBar
     },
     created(){
-      this.get_data()
+      this.fetch_data()
     },
     methods: {
-      get_data(){
+      on_off_sheleve(good) {
+        this.load_data = true
+        this.$fetch.good.save(good.id, {
+          state: 4
+        }).then(() => {
+          good.state = 4
+          this.load_data = false
+        }).catch(() => {
+          this.load_data = false
+        })
+      },
+      fetch_data() {
         this.load_data = true
         this.$fetch.good.list({
           skip: this.take * (this.currentPage - 1),
@@ -165,25 +173,25 @@
           state: this.stateVal
         }).then(({data: {result, total}}) => {
           this.total = total
-          this.tableData = result
+          this.table = result
           this.load_data = false
         }).catch(() => {
           this.load_data = false
         })
       },
       on_refresh(){
-        this.get_data()
+        this.fetch_data()
       },
       handleCurrentChange(val) {
         this.currentPage = val
-        this.get_data()
+        this.fetch_data()
       },
       handleCheckedStatesChange(val) {
         this.stateVal = 0;
         for (let o of this.checkedStates) {
           this.stateVal += stateOptionsMap[o]
         }
-        this.get_data()
+        this.fetch_data()
       },
     }
   }

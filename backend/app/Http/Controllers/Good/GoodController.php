@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Good;
 
+use App\Exceptions\PermissionDeniedException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -114,13 +115,17 @@ class GoodController extends Controller
     {
         try {
             $good = Good::with('categories')->find($id);
+            if ($request->user('api')->id !=
+                $good->user_id) {
+                throw new PermissionDeniedException();
+            }
             $good->fill($request->json()->all());
             if ($good->purchased_at) {
                 $good->purchased_at = date(
                     'Y-m-d', strtotime($good->purchased_at));
             } else if ($good->quality == 2) {
                 return Response::json([
-                    'msg' => '未填写购置日期',
+                    'msg' => '二手商品需要填写购置日期',
                     'code' => 400,
                 ], 400);
             } else {
@@ -136,7 +141,10 @@ class GoodController extends Controller
                 $good->total = 0;
             }
             DB::transaction(function () use ($request, $good) {
-                $good->categories()->sync($request->json('categories'));
+                $categories = $request->json('categories');
+                if ($categories) {
+                    $good->categories()->sync($categories);
+                }
                 $good->save();
             });
             RedisCacheHelper::clean([
@@ -144,6 +152,11 @@ class GoodController extends Controller
                 'goods:0*',
                 'goods:'.$good->user_id.'*'
                 ]);
+        } catch (PermissionDeniedException $e) {
+            return Response::json([
+                'msg'  => '操作失败, 权限不足.',
+                'code' => 400,
+            ], 400);
         } catch (QueryException $e) {
             return Response::json([
                 'msg' => '商品更新失败.',

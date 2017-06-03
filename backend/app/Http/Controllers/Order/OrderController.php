@@ -98,6 +98,8 @@ class OrderController extends Controller
                     'operated_user_id' => $request->user()->id,
                 ]);
                 RedisCacheHelper::clean([
+                    'good:'.'*',
+                    'goods:'.'*',
                     'orders:'.$order->customer_id.'*',
                     'orders:'.'0:'.$order->merchant_id.'*'
                 ]);

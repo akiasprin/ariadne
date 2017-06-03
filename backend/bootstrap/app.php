@@ -11,8 +11,6 @@
 |
 */
 
-error_log(__DIR__);
-
 $app = new Illuminate\Foundation\Application(
     realpath(__DIR__.'/../')
 );

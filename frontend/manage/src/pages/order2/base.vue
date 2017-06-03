@@ -123,11 +123,11 @@
     data(){
       return {
         checkAll: true,
-        checkedStates: ['已付款', '未收货买家取消(未确认)', '退货(未确认)'],
+        checkedStates: ['未付款', '已付款', '已发货', '已完成'],
         Type: stateTagTypes,
         States: stateOptions,
         isIndeterminate: true,
-        state: 578,
+        state: 15,
         table_data: null,
         //当前页码
         currentPage: 1,

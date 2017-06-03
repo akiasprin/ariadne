@@ -20,7 +20,8 @@ import shopOrdersComponent from 'pages/order2/base'
 import shopAddressesComponent from 'pages/address/index'
 import commentsComponent from 'pages/comment/index'
 
-import barChartsComponent from 'pages/charts/bar'
+import cartComponent from 'pages/cart/index'
+import userOptionsComponent from 'pages/user/options'
 
 Vue.use(VueRouter)
 
@@ -110,14 +111,6 @@ const routes = [{
       auth: true
     }
   }, {
-      path: '/admin/categories/',
-      name: 'categories',
-      component: categoriesComponent,
-      meta: {
-          title: "分类目录",
-          auth: true
-      }
-  }, {
     path: '/comments',
     name: 'comments',
     component: commentsComponent,
@@ -126,11 +119,27 @@ const routes = [{
       auth: true
     }
   }, {
-    path: '/charts/bar',
-    name: 'chartsBar',
-    component: barChartsComponent,
+    path: '/cart',
+    name: 'cart',
+    component: cartComponent,
     meta: {
-      title: "柱状图表",
+      title: "购物车信息",
+      auth: true
+    }
+  }, {
+    path: '/admin/categories/',
+    name: 'categories',
+    component: categoriesComponent,
+    meta: {
+      title: "分类目录",
+      auth: true
+    }
+  }, {
+    path: '/user/options/',
+    name: 'userOptions',
+    component: userOptionsComponent,
+    meta: {
+      title: "用户设置",
       auth: true
     }
   }]

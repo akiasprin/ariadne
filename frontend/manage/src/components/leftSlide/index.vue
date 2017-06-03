@@ -41,8 +41,16 @@
   </div>
 </template>
 <script type="text/javascript">
+  import {mapGetters, mapActions} from 'vuex'
+  import {GET_USER_INFO} from 'store/getters/type'
+  import {SET_USER_INFO} from 'store/actions/type'
   export default{
     name: 'slide',
+    computed: {
+      ...mapGetters({
+        get_user_info: GET_USER_INFO,
+      })
+    },
     data(){
       return {
         nav_menu_data: [{
@@ -63,12 +71,12 @@
         }, {
           title: "购物管理",
           path: "/shop",
-          icon: "fa-shopping-cart",
+          icon: "fa-shopping-bag",
           child: [{
             title: "收货地址",
             path: "/shop/addresses"
           }, {
-              title: "购物订单",
+              title: "已购订单",
               path: "/shop/orders"
           }]
         }, {
@@ -76,28 +84,31 @@
           path: "/comments",
           icon: "fa-commenting-o",
         }, {
-            title: "账户设置",
+          title: "查看购物车",
+          path: "/cart",
+          icon: "fa-shopping-cart",
+        }, {
+            title: "用户管理",
             path: "/user",
             icon: "fa-user-o",
             child: [{
                 title: "信息修改",
-                path: "/user/details"
-            }, {
-                title: "安全修改",
-                path: "/user/security"
-            }]
-        }, {
-            title: "系统管理",
-            path: "/admin",
-            icon: "fa-cog",
-            child: [{
-                title: "分类管理",
-                path: "/admin/categories"
-            }, {
-                title: "系统参数",
-                path: "/admin/options"
+                path: "/user/options"
             }]
         }]
+      }
+    },
+    created() {
+      if (this.get_user_info.user.role === 'admin') {
+        this.nav_menu_data.push({
+          title: "系统管理",
+          path: "/admin",
+          icon: "fa-cog",
+          child: [{
+            title: "分类管理",
+            path: "/admin/categories"
+          }]
+        })
       }
     }
   }

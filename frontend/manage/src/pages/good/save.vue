@@ -38,7 +38,7 @@
                       class="cover-uploader"
                       name="cover"
                       action="http://localhost:1088/api/upload"
-                      :headers="{'Authorization': 'Bearer '+get_token}"
+                      :headers="{'Authorization': 'Bearer ' + get_token}"
                       :show-file-list="false"
                       :on-success="handleUploadSuccess">
                       <img v-if="form.cover" :src="form.cover" class="cover">
@@ -111,7 +111,7 @@
                     <template scope="props">
                       <el-button type="" size="small" icon="edit"
                                  @click="open_comment_dialog('edit', props.row)"
-                                :disabled="get_user_info.user.id !== props.row.user.id"></el-button>
+                                 :disabled="get_user_info.user.id !== props.row.user.id"></el-button>
                       <el-button type="info" size="small"
                                  @click="open_comment_dialog('reply', props.row)"
                                  icon="message"></el-button>
@@ -155,10 +155,8 @@
 
 <script type="text/javascript">
   import {panelTitle} from 'components'
-  import ElInput from "../../../node_modules/element-ui/packages/input/src/input";
   import {GET_TOKEN, GET_USER_INFO} from "../../store/getters/type";
   import {mapGetters} from "vuex";
-  import ElCol from "element-ui/packages/col/src/col";
   import {VueEditor} from 'vue2-editor'
   export default{
     computed: {
@@ -177,9 +175,9 @@
         },
         cates: [],
         comment_form: {
-          content: null,
+          content: '',
           user: {
-            name: null,
+            name: '',
           },
           good_id: this.$route.params.id,
         },
@@ -241,11 +239,25 @@
       }
     },
     created(){
-      this.get_form_data()
+      this.fetch_data()
     },
     methods: {
-      handleUploadSuccess(res, file) {
-        this.form.cover = res.url;
+      fetch_data() {
+        this.load_data = true
+        this.$fetch.category.list()
+          .then(({data}) => {
+            this.cates = data
+            if (this.route_id) {
+              this.$fetch.good.get(this.route_id)
+                .then(({data}) => {
+                  this.form = data
+                })
+            }
+            this.load_data = false
+          })
+          .catch(() => {
+            this.load_data = false
+          })
       },
       open_comment_dialog(type, comment) {
         this.commentFormVisible = true
@@ -280,7 +292,6 @@
         this.$fetch.comment.del(comment.id)
           .then(({msg}) => {
             for (let i = 0; i < this.form.comments.length; i++) {
-              console.log(this.form.comments[i].id)
               if (this.form.comments[i].id === comment.id) {
                 this.form.comments.splice(i, 1)
                 break
@@ -293,25 +304,7 @@
             this.on_submit_loading = false
           })
       },
-      get_form_data(){
-        this.load_data = true
-        this.$fetch.category.list()
-          .then(({data}) => {
-            this.cates = data
-            if (this.route_id) {
-              this.$fetch.good.get(this.route_id)
-                .then(({data}) => {
-                  this.form = data
-                })
-            }
-            this.load_data = false
-          })
-          .catch(() => {
-            this.load_data = false
-          })
-
-      },
-      on_submit_form(){
+      on_submit_form() {
         this.$refs.form.validate((valid) => {
           if (!valid) return false
           this.on_submit_loading = true
@@ -324,11 +317,12 @@
               this.on_submit_loading = false
             })
         })
-      }
+      },
+      handleUploadSuccess(res, file) {
+        this.form.cover = res.url;
+      },
     },
     components: {
-      ElCol,
-      ElInput,
       panelTitle,
       VueEditor,
     }

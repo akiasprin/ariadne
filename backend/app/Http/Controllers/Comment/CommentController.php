@@ -79,13 +79,13 @@ class CommentController extends Controller
 
     public function update(Request $request, $id)
     {
-        $comment = Comment::find($id);
-        $comment->fill($request->json()->all());
         try {
+            $comment = Comment::find($id);
             if ($request->user('api')->id !=
                 $comment->user_id) {
                 throw new PermissionDeniedException();
             }
+            $comment->fill($request->json()->all());
             $comment->save();
             $comment->user; $comment->good;
             RedisCacheHelper::clean([
