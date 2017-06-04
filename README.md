@@ -12,8 +12,8 @@
 
   |字段|类型|必须|含义|
   |---|---|---|---|
-  |name|string|True|用户店铺名|
-  |phone|string|True|注册手机|
+  |name|string|√|用户店铺名|
+  |phone|string|√|注册手机|
 
 #### Resp.:
 
@@ -30,10 +30,10 @@
 
   |字段|类型|必须|含义|
   |---|---|---|---|
-  |name|string|True|用户店铺名|
-  |phone|string|True|注册手机|
-  |code|string|True|验证码|
-  |password|string|True|用户密码|
+  |name|string|√|用户店铺名|
+  |phone|string|√|注册手机|
+  |code|string|√|验证码|
+  |password|string|√|用户密码|
 
 #### Resp.:
 
