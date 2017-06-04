@@ -2,11 +2,11 @@
 
 一只P2P交易系统(Laravel and Vue)
 
-## API
+## 用户管理API
 
 ### 获取验证码:
 
-Req.:
+#### Req.:
   
   ```POST``` api/user/sendcode
 
@@ -15,7 +15,7 @@ Req.:
   |name|string|True|用户店铺名|
   |phone|string|True|注册手机|
 
-Resp.:
+#### Resp.:
 
   |字段|类型|含义|
   |---|---|---|
@@ -24,7 +24,7 @@ Resp.:
 
 ### 注册:
 
-Req.:
+#### Req.:
 
   ```POST``` api/user/register
 
@@ -35,7 +35,7 @@ Req.:
   |code|string|True|验证码|
   |password|string|True|用户密码|
 
- Resp.:
+#### Resp.:
 
   |字段|类型|含义|
   |---|---|---|
