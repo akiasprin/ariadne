@@ -129,7 +129,8 @@
   |result|Array|商品列表|
   |total|int|总计|
 
-  **商品列表构成**
+  *商品列表构成*
+
   ```
 [
     {
@@ -248,5 +249,113 @@
 #### Resp.:
   同创建.
 
+***
+
+## 订单管理API
+
+### 查看订单:
+
+#### Req.:
+  
+  ```GET``` api/order
+
+  |字段|类型|必须|含义|
+  |---|---|---|---|
+  |by|string|×|排序KEY|
+  |desc|bool|×|降序|
+  |skip|int|×|跳过n条记录|
+  |take|int|×|选择n条记录|
+  |customer|int|×|可获取用户ID下所有购买的订单(留空获取所有)|
+  |merchant|int|×|可获取用户ID下所有销售的订单(留空获取所有)|
+  |state|int|×|获取的商品状态(1:草稿, 2:在售, 4:缺货, 8:下架)|
+
+#### Resp.:
+  |字段|类型|含义|
+  |---|---|---|
+  |result|Array|订单列表|
+  |total|int|总计|
+
+
+  *订单列表构成*
+  
+```
+{
+    "id": 1,
+    "sum": "10.00",
+    "state": 6,
+    "express_name": "顺疯快递",
+    "express_code": "1025123978",
+    "merchant_id": 1,
+    "customer_id": 2,
+    "address_id": 2,
+    "created_at": "2017-05-31 13:23:54",
+    "updated_at": "2017-06-03 20:52:20",
+    "goods": [
+        {
+            "id": 1,
+            "title": "乐事薯片黄瓜味180G",
+            "desc": "好吃啊",
+            "cover": "http://localhost:1088/storage/ihP4oHTCbo4tDivAccsdx5cXvp42Seiff0K9SNYe.jpeg",
+            "price": "10.00",
+            "total": 305,
+            "unit": "包",
+            "province": "广东",
+            "city": "肇庆",
+            "state": 4,
+            "views": 23,
+            "sales": 125,
+            "quality": 2,
+            "purchased_at": "2017-06-15 00:00:00",
+            "created_at": "2017-05-31 13:10:24",
+            "updated_at": "2017-06-04 20:44:31",
+            "user_id": 1,
+            "pivot": {
+                "order_id": 1,
+                "good_id": 1,
+                "quantity": 1
+            }
+        }
+    ],
+    "address": {
+        "id": 2,
+        "user_id": 2,
+        "name": "周杰伦",
+        "phone": "01216666076",
+        "province": "台湾省",
+        "city": "台北市",
+        "area": "中山區",
+        "street": "民生東路二段149號12樓",
+        "post_code": "808080",
+        "created_at": "2017-05-31 13:23:42",
+        "updated_at": "2017-05-31 13:23:42"
+    },
+    "customer": {
+        "id": 2,
+        "name": "北理第二帅",
+        "phone": "13425294668",
+        "email": null,
+        "avatar": null,
+        "sign": null,
+        "credit": 0,
+        "role": "member",
+        "last_login_at": "2017-06-01 06:03:25",
+        "created_at": "2017-05-31 13:16:58",
+        "updated_at": "2017-06-04 15:49:19"
+    },
+    "merchant": {
+        "id": 1,
+        "name": "北理第一帅",
+        "phone": "13160662320",
+        "email": "1025123978@qq.com",
+        "avatar": "https://secure.gravatar.com/avatar/4c8a2a53dab9a479fb7940e1d3d2b04d?s=80&r=g&d=identicon",
+        "sign": "北理第一帅",
+        "credit": 0,
+        "role": "admin",
+        "last_login_at": "2017-06-04 15:50:03",
+        "created_at": "2017-05-31 13:08:08",
+        "updated_at": "2017-06-04 20:31:20"
+    }
+}
+```
 
 ***
