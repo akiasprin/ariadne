@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Order;
 
 use App\Exceptions\OrderWrongStateException;
 use App\Http\Utilities\RedisCacheHelper;
+use App\Models\Good;
 use App\Models\Order;
 use App\Exceptions\GoodUnavailableException;
 use Illuminate\Database\QueryException;
@@ -55,70 +56,84 @@ class OrderController extends Controller
 
     public function store(Request $request)
     {
-        try {
-            $order = new Order;
-            DB::transaction(function () use ($request, $order) {
-                $sum = 0;
-                $goods = [];
-                $order->address_id = $request->json('address_id');
-                $order->customer_id = $request->user('api')->id;
-                $order->merchant_id = $order->customer_id;
-                $order->sum = $sum;
-                $order->save();
-                foreach ($request->json('goods') as $good) {
-                    $goods = $goods + [$good[0] => ['quantity' => $good[1]]];
-                }
-                $order->goods()->attach($goods);
-                foreach ($order->goods()->get() as $good) {
-                    if ($order->merchant_id == $order->customer_id) {
-                        $order->merchant_id = $good->user_id;
+
+        $goods = $request->json('goods');
+        $address_id = $request->json('address_id');
+        $customer_id = $request->user('api')->id;
+        $lists = [];
+        $orders = [];
+        foreach ($goods as $good) {
+            $user = Good::find($good[0])->user_id;
+            $lists[$user][] = $good;
+        }
+        foreach ($lists as $list) {
+            try {
+                $order = new Order;
+                DB::transaction(function () use ($address_id, $customer_id, $order, $list) {
+                    $sum = 0;
+                    $goods = [];
+                    $order->address_id = $address_id;
+                    $order->customer_id = $customer_id;
+                    $order->merchant_id = $order->customer_id;
+                    $order->sum = $sum;
+                    $order->save();
+                    foreach ($list as $good) {
+                        $goods = $goods + [$good[0] => ['quantity' => $good[1]]];
                     }
-                    // 并发控制
-                    $res = DB::update('
+                    $order->goods()->attach($goods);
+                    foreach ($order->goods()->get() as $good) {
+                        if ($order->merchant_id == $order->customer_id) {
+                            $order->merchant_id = $good->user_id;
+                        }
+                        // 并发控制
+                        $res = DB::update('
                         UPDATE `goods` 
                         SET `total` = `total` - ?, `sales` = `sales` + ?, `updated_at` = ?
                         WHERE `id` = ?
                         AND `state` = 2 AND `total` > ? 
                     ', [
-                        $good->pivot->quantity,
-                        $good->pivot->quantity,
-                        date('Y-m-d H:i:s',time()),
-                        $good->id,
-                        $good->pivot->quantity,
-                    ]);
-                    if (!$res) {
-                        throw new GoodUnavailableException;
+                            $good->pivot->quantity,
+                            $good->pivot->quantity,
+                            date('Y-m-d H:i:s',time()),
+                            $good->id,
+                            $good->pivot->quantity,
+                        ]);
+                        if (!$res) {
+                            throw new GoodUnavailableException;
+                        }
+                        $sum += $good->price * $good->pivot->quantity;
                     }
-                    $sum += $good->price * $good->pivot->quantity;
-                }
-                $order->sum = $sum;
-                $order->save();
-                $order->timelines()->create([
-                    'state' => 1,
-                    'operated_user_id' => $request->user()->id,
-                ]);
-                RedisCacheHelper::clean([
-                    'good:'.'*',
-                    'goods:'.'*',
-                    'orders:'.$order->customer_id.'*',
-                    'orders:'.'0:'.$order->merchant_id.'*'
-                ]);
-            });
-        } catch (GoodUnavailableException $e) {
-            return Response::json([
-                'msg'  => '订单商品缺货或已下架.',
-                'code' => 400,
-            ], 400);
-        } catch (QueryException $e) {
-            return Response::json([
-                'e' => $e,
-                'msg' => '订单创建异常.',
-                'code' => 400,
-            ], 400);
+                    $order->sum = $sum;
+                    $order->save();
+                    $order->timelines()->create([
+                        'state' => 1,
+                        'operated_user_id' => $customer_id,
+                    ]);
+                    RedisCacheHelper::clean([
+                        'good:'.'*',
+                        'goods:'.'*',
+                        'orders:'.$order->customer_id.'*',
+                        'orders:'.'0:'.$order->merchant_id.'*'
+                    ]);
+                });
+            } catch (GoodUnavailableException $e) {
+                return Response::json([
+                    'msg'  => '订单商品缺货或已下架.',
+                    'code' => 400,
+                ], 400);
+            } catch (QueryException $e) {
+                return Response::json([
+                    'e' => $e,
+                    'msg' => '订单创建异常.',
+                    'code' => 400,
+                ], 400);
+            }
+            $orders[] = $order;
+
         }
         return Response::json([
             'msg' => '订单创建成功.',
-            'data' => $order,
+            'data' => $orders,
             'code' => 201,
         ], 200);
     }

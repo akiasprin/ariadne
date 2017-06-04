@@ -24,9 +24,15 @@ class ExampleTest extends TestCase
      */
     public function testBasicTest()
     {
-        $user = User::find(1)->first();
-        $good = $user->cart()->with('user')->get()->groupBy('user_id')->values();
-        echo(json_encode($good->toArray()));
+        $goods = [[1, 2], [2, 1]];
+        $orders = [];
+        foreach ($goods as $good) {
+            $user = Good::find($good[0])->user_id;
+            $orders[$user][] = $good;
+        }
+        foreach ($orders as $order) {
+            dd($order);
+        }
     }
 
 }

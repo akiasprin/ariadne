@@ -12,30 +12,8 @@ export function list(params) {
   })
 }
 
-export function get(id, params) {
-  return fetch({
-    url: cart_uri + id,
-    method: 'GET',
-    params
-  })
-}
 
-export function del(id, data) {
-  return fetch({
-    url: cart_uri + id,
-    method: 'DELETE',
-    data
-  })
-}
-
-export function save(id, data) {
-  if (id) {
-    return fetch({
-        url: cart_uri + id,
-        method: 'PUT',
-        data
-    })
-  }
+export function save(data) {
   return fetch({
       url: cart_uri,
       method: 'POST',
