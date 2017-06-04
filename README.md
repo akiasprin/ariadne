@@ -2,6 +2,12 @@
 
 一只P2P交易系统(Laravel and Vue)
 
+**需要认证**:
+
+```
+  headers: { "Authorization": "Bearer " + access_token }
+```
+
 ## 用户管理API
 
 ### 获取验证码:
@@ -14,13 +20,6 @@
   |---|---|---|---|
   |name|string|√|用户店铺名|
   |phone|string|√|注册手机|
-
-#### Resp.:
-
-  |字段|类型|含义|
-  |---|---|---|
-  |msg|string|结果信息|
-  |code|int|结果代码|
 
 ### 注册:
 
@@ -46,3 +45,24 @@
   |phone|string|用户密码|
   |created_at|string|注册时间|
   |updated_at|string|更新时间|
+
+### 登录:
+
+#### Req.:
+
+  ```POST``` api/user/register
+
+  |字段|类型|必须|含义|
+  |---|---|---|---|
+  |phone|string|√|注册手机|
+  |password|string|√|用户密码|
+
+#### Resp.:
+  同注册.
+
+### 注销:
+
+#### Req.(**需要认证**):
+
+  ```POST``` api/user/logout
+
