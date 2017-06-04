@@ -8,7 +8,7 @@
 
 Req.:
   
-  POST api/user/sendcode
+  ```POST``` api/user/sendcode
 
   |字段|类型|必须|含义|
   |---|---|---|---|
@@ -26,7 +26,7 @@ Resp.:
 
 Req.:
 
-  POST api/user/register
+  ```POST``` api/user/register
 
   |字段|类型|必须|含义|
   |---|---|---|---|
