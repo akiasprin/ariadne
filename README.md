@@ -21,6 +21,8 @@
   |name|string|√|用户店铺名|
   |phone|string|√|注册手机|
 
+***
+
 ### 注册:
 
 #### Req.:
@@ -46,6 +48,8 @@
   |created_at|string|注册时间|
   |updated_at|string|更新时间|
 
+***
+
 ### 登录:
 
 #### Req.:
@@ -59,6 +63,8 @@
 
 #### Resp.:
   同注册.
+
+***
 
 ### 注销:
 
