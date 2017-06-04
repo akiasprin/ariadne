@@ -435,8 +435,6 @@
 }
 ```
 
-
-
 ### 3. 创建订单:
 
 #### Req.:
@@ -504,53 +502,53 @@
 
   |字段|类型|必须|含义|
   |---|---|---|---|
-  |state|int|√|状态|
-  |express_name|string|√|创建的商品列表|
-
-*创建的订单*
-
-  goods:[商品ID, 数量] ...
-
-```
-{
-	"address_id": 1,
-	"goods": [
-		[1, 2],
-		[2, 1],
-		[3, 3]
-		]
-}
-```
+  |state|int|√|状态(1:未付款, 2:已付款 4:已发货 8:已完成 ..)|
+  |express_name|string|×|快递公司(当状态为已发货有效)|
+  |express_code|string|×|邮件编号(当状态为已发货有效)|
 
 #### Resp.:
   
-  创建的订单列表 Array
-
-  这是因为商品来自的商家不一样,我们需要针对每一个商家创建一份订单..
-
-*创建的订单列表*
+  字段参考*查看单一订单*,内容差不多
 
 ```
-[
-    {
-      "address_id": 1,
-      "customer_id": 1,
-      "merchant_id": 1,
-      "sum": 40.4,
-      "updated_at": "2017-06-04 21:05:50",
-      "created_at": "2017-06-04 21:05:50",
-      "id": 37
-    },
-    {
-      "address_id": 1,
-      "customer_id": 1,
-      "merchant_id": 2,
-      "sum": 14,
-      "updated_at": "2017-06-04 21:05:50",
-      "created_at": "2017-06-04 21:05:50",
-      "id": 38
-    }
-  ]
+{
+    "id": 1,
+    "sum": "10.00",
+    "state": 2,
+    "express_name": null,
+    "express_code": null,
+    "merchant_id": 1,
+    "customer_id": 2,
+    "address_id": 2,
+    "created_at": "2017-05-31 13:23:54",
+    "updated_at": "2017-06-04 21:42:24",
+    "timelines": [
+        {
+            "order_id": 1,
+            "state": 1,
+            "operated_user_id": 2,
+            "operated_at": "2017-05-31 13:23:54"
+        },
+        {
+            "order_id": 1,
+            "state": 2,
+            "operated_user_id": 2,
+            "operated_at": "2017-05-31 13:24:21"
+        },
+        {
+            "order_id": 1,
+            "state": 4,
+            "operated_user_id": 1,
+            "operated_at": "2017-06-01 05:16:17"
+        },
+        {
+            "order_id": 1,
+            "state": 6,
+            "operated_user_id": 1,
+            "operated_at": "2017-06-03 20:52:20"
+        }
+    ]
+}
  ```
 
 
