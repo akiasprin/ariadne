@@ -195,6 +195,10 @@
 ]
   ```
 
+***
+### 查看单一商品:
+
+***
 
 ### 创建商品:
 
@@ -258,7 +262,7 @@
 
 ## 订单管理API
 
-### 查看订单:
+### 查看订单列表:
 
 #### Req.:
   
@@ -365,6 +369,50 @@
 
 ***
 
+### 查看单一订单:
+
+#### Req.:
+  ```GET``` api/order/{id}
+
+#### Resp.:
+  
+  字段参考*订单列表构成*,并提供订单操作记录(*timelines*)
+
+```
+{
+    "id": 1,
+    "sum": "10.00",
+    "state": 6,
+    "express_name": null,
+    "express_code": null,
+    "merchant_id": 1,
+    "customer_id": 2,
+    "address_id": 2,
+    "created_at": "2017-05-31 13:23:54",
+    "updated_at": "2017-06-03 20:52:20",
+    "goods": [
+    	....
+    ],
+    "address": {
+    	....
+    },
+    "timelines": [
+        {
+            "order_id": 1,
+            "state": 1,
+            "operated_user_id": 2,
+            "operated_at": "2017-05-31 13:23:54",
+            "user": {
+            	....
+            }
+        },
+        ....
+    ]
+}
+```
+
+***
+
 ### 创建订单:
 
 #### Req.:
@@ -432,8 +480,8 @@
 
   |字段|类型|必须|含义|
   |---|---|---|---|
-  |address_id|int|√|用户的地址ID|
-  |goods|Array|√|创建的商品列表|
+  |state|int|√|状态|
+  |express_name|string|√|创建的商品列表|
 
 *创建的订单*
 
