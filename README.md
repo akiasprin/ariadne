@@ -1,11 +1,15 @@
 ## Ariadne
 
-一只P2P交易系统(Laravel and Vue)
+一只P2P交易系统DEMO(PHP Laravel and Vue).
+
+后台Vue模板来自[zzmhot的vue-admin](https://github.com/zzmhot/vue-admin).
 
 ### TODO:
 
 1. 长连接websocket实现发货信息推送
-2. 各种输入验证(不打算弄,太麻烦了..)
+2. 接入第三方支付(不弄)
+3. 各种输入验证(不弄,太麻烦了..)
+4. 商城前台..
 
 ![](A.png) 
 ![](B.png) 
@@ -17,6 +21,19 @@
 ```
   headers: { "Authorization": "Bearer " + access_token }
 ```
+
+**基本API格式**:
+
+文档中无相关Resp.说明,即可能无Data数据域.
+
+```
+{
+  "msg": "操作结菓",
+  "data": ...,
+  "code": "操作结果呆码"
+}
+```
+
 
 ## 用户管理API
 
@@ -130,6 +147,27 @@
   |total|int|总计|
 
   *商品列表构成*
+
+  |字段|类型|含义|
+  |---|---|---|
+  |id|int|商品ID|
+  |title|string|商品标题|
+  |desc|string|商品简要内容(16字)|
+  |cover|string|商品封面|
+  |price|double|商品价格|
+  |total|int|商品数量|
+  |unit|string|商品单位名称|
+  |province|string|商品所在省份|
+  |city|string|商品所在城市|
+  |quality|int|商品状态(1:全新, 2:二手)|
+  |categories|Array|目录ID|
+  |content|string|商品详细内容|
+  |purchased_at|Datetime|二手商品购买日期(仅限二手)|
+  |user_id|int|商品归属用户ID|
+  |views|int|查看统计|
+  |sales|int|销售统计|
+  |created_at|string|创建时间|
+  |updated_at|string|更新时间|
 
   ```
 [
@@ -251,28 +289,8 @@
   |purchased_at|Date()|×|二手商品购买日期(仅限二手)|
 
 #### Resp.:
-
-  |字段|类型|含义|
-  |---|---|---|
-  |id|int|商品ID|
-  |title|string|商品标题|
-  |desc|string|商品简要内容(16字)|
-  |cover|string|商品封面|
-  |price|double|商品价格|
-  |total|int|商品数量|
-  |unit|string|商品单位名称|
-  |province|string|商品所在省份|
-  |city|string|商品所在城市|
-  |quality|int|商品状态(1:全新, 2:二手)|
-  |categories|Array|目录ID|
-  |content|string|商品详细内容|
-  |purchased_at|Datetime|二手商品购买日期(仅限二手)|
-  |user_id|int|商品归属用户ID|
-  |views|int|查看统计|
-  |sales|int|销售统计|
-  |created_at|string|创建时间|
-  |updated_at|string|更新时间|
-
+  
+  参考*商品列表构成*..
 
 ### 4. 更新商品:
 
@@ -315,6 +333,23 @@
 
   *订单列表构成*
 
+  |字段|类型|含义|
+  |---|---|---|
+  |id|int|订单ID|
+  |sum|double|总价|
+  |state|int|状态(1:未付款, 2:已付款 4:已发货 8:已完成 ..)|
+  |express_name|string|快递公司(当状态为已发货有效)|
+  |express_code|string|邮件编号(当状态为已发货有效)|
+  |merchant_id|int|卖家ID|
+  |customer_id|int|买家ID|
+  |address_id|int|地址ID(此处设计有问题!)|
+  |created_at|Datetime|订单生成日期|
+  |updated_at|Datetime|订单更新日期|
+  |goods|Array|商品列表|
+  |address|Object|收货地址|
+  |customer|Object|买家|
+  |merchant|Object|卖家|
+  
 ```
 {
     "id": 1,
@@ -456,12 +491,12 @@
 
 ```
 {
-	"address_id": 1,
-	"goods": [
-		[1, 2],
-		[2, 1],
-		[3, 3]
-		]
+    "address_id": 1,
+    "goods": [
+        [1, 2],
+        [2, 1],
+        [3, 3]
+    ]
 }
 ```
 
@@ -599,3 +634,239 @@
     ] //第二个商家的商品列表
 ]
 ```
+
+### 2. 添加/移除商品到购物车:
+
+#### Req.:
+  
+  ```POST``` api/cart
+
+  |字段|类型|必须|含义|
+  |---|---|---|---|
+  |good|pair|√|商品ID和数量|
+
+  ```
+  {
+    "good": [3, -3]
+  }
+  ```
+
+## 分类管理API
+
+### 1. 查看所有分类
+
+#### Req.:
+  
+  ```GET``` api/category
+
+#### Resp.:
+
+  |字段|类型|含义|
+  |---|---|---|
+  |id|int|分类ID|
+  |name|string|分类名|
+  |slug|string|分类别名|
+  |child|Array|子分类列表|
+
+```
+[
+    {
+        "id": 7,
+        "name": "人类",
+        "slug": "human",
+        "child": [
+            {
+                "id": 8,
+                "name": "男朋友",
+                "slug": "boyfriend",
+                "child": [
+                    {
+                        "id": 10,
+                        "name": "庄中坚",
+                        "slug": "Zhuang-backbone"
+                    }
+                ]
+            },
+            {
+                "id": 9,
+                "name": "女朋友",
+                "slug": "girlfriend",
+                "child": [
+                    {
+                        "id": 11,
+                        "name": "麦俊杰",
+                        "slug": "MaiJunJie"
+                    }
+                ]
+            },
+            {
+                "id": 12,
+                "name": "儿子",
+                "slug": "son",
+                "child": [
+                    {
+                        "id": 13,
+                        "name": "吴融城",
+                        "slug": "Wu-Rong city"
+                    }
+                ]
+            }
+        ]
+    }
+]
+```
+
+### 2. 添加分类
+
+#### Req.:
+
+  ```POST``` api/category
+  
+  |字段|类型|含义|
+  |---|---|---|
+  |name|string|分类名|
+  |slug|string|分类别名|
+  |parent_id|int|父分类ID|
+
+#### Resp.:
+
+  |字段|类型|含义|
+  |---|---|---|
+  |id|int|分类ID|
+  |name|string|分类名|
+  |slug|string|分类别名|
+  |parent_id|int|父分类ID|
+
+
+### 3. 修改分类
+
+#### Req.:
+
+  ```PUT``` api/category/{id}
+  
+  |字段|类型|含义|
+  |---|---|---|
+  |name|string|分类名|
+  |slug|string|分类别名|
+  |parent_id|int|父分类ID|
+
+#### Resp.:
+
+  参考`添加分类`..
+
+### 4. 删除分类
+
+#### Req.:
+
+  ```DELETE``` api/category/{id}
+  
+## 地址管理API
+
+### 1. 查看地址列表
+
+#### Req.: 
+
+  ```GET``` api/address
+  
+  |字段|类型|必须|含义|
+  |---|---|---|---|
+  |by|string|×|排序KEY|
+  |desc|bool|×|降序|
+  |skip|int|×|跳过n条记录|
+  |take|int|×|选择n条记录|
+  |user|int|×|获取的用户ID|
+
+#### Resp.:
+
+  |字段|类型|含义|
+  |---|---|---|
+  |result|Array|地址列表|
+  |total|int|总计|
+
+  *地址列表构成*
+  
+  |字段|类型|含义|
+  |---|---|---|
+  |id|int|地址ID|
+  |user_id|int|用户ID|
+  |name|string|收货人|
+  |phone|string|联系电话|
+  |province|string|省份|
+  |city|string|城市|
+  |area|string|区|
+  |street|string|街道|
+  |post_code|string|邮编|
+  |created_at|Datetime|创建时间|
+  |updated_at|Datetime|更新时间|
+  |user|Object|用户|
+  
+  ```
+  {
+      "id": 1,
+      "user_id": 1,
+      "name": "LSA",
+      "phone": "13160662320",
+      "province": "广东",
+      "city": "珠海",
+      "area": "香洲区",
+      "street": "北京理工大学珠海学院38棟宿舍214室",
+      "post_code": "466000",
+      "created_at": "2017-05-31 13:20:54",
+      "updated_at": "2017-05-31 13:21:11",
+      "user": {
+          "id": 1,
+          ...
+      }
+  }
+  ```
+
+### 2. 查看单一地址
+
+#### Req.: 
+
+  ```GET``` api/address/{id}
+  
+#### Resp.:
+  参考*地址列表构成*
+  
+### 3. 添加地址
+
+#### Req.: 
+
+  ```POST``` api/address
+  
+  |字段|类型|必须|含义|
+  |---|---|---|---|
+  |name|string|√|收货人|
+  |phone|string|√|联系电话|
+  |province|string|√|省份|
+  |city|string|√|城市|
+  |area|string|√|区|
+  |street|string|√|街道|
+  |post_code|string|√|邮编|
+    
+#### Resp.:
+
+  字段参考*地址列表构成*
+  
+### 4. 修改地址
+
+#### Req.: 
+
+  ```PUT``` api/address/{id}
+
+  字段参考*添加地址*
+
+#### Resp.:
+
+  字段参考*地址列表构成*
+
+### 5. 删除地址
+
+#### Req.: 
+
+  ```DETELE``` api/address/{id}
+
+## 评论管理API
+
+## 上传管理API
