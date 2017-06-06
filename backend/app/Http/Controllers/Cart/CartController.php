@@ -30,11 +30,16 @@ class CartController extends Controller
         $user = $request->user('api');
         $exists = $user->cart()->where('id', $good[0])->first();
         $origin = $exists ? $exists->pivot->quantity : 0;
-        $user->cart()->syncWithoutDetaching([$good[0] => ['quantity' => $origin + $good[1]]]);
+        $sum = $origin + $good[1];
+        if ($sum > 0) {
+            $user->cart()->syncWithoutDetaching([$good[0] => ['quantity' => $sum]]);
+        } else {
+            $user->cart()->detach([$good[0]]);
+        }
         RedisCacheHelper::clean(['cart:'.$user->id]);
         return Response::json([
-            'msg'  => '添加购物车成功.',
-            'code' => 200,
+            'msg'  => $good[1] > 0 ? '添加购物车成功.' : '移除购物车成功',
+            'code' => 201,
         ], 200);
     }
 

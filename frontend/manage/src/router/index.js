@@ -20,6 +20,7 @@ import shopOrdersComponent from 'pages/order2/base'
 import shopAddressesComponent from 'pages/address/index'
 import commentsComponent from 'pages/comment/index'
 
+import goodsComponent from 'pages/good/all'
 import cartComponent from 'pages/cart/index'
 import userOptionsComponent from 'pages/user/options'
 
@@ -116,6 +117,14 @@ const routes = [{
     component: commentsComponent,
     meta: {
       title: "评论管理",
+      auth: true
+    }
+  }, {
+    path: '/goods',
+    name: 'goods',
+    component: goodsComponent,
+    meta: {
+      title: "所有商品浏览",
       auth: true
     }
   }, {

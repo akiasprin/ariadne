@@ -84,6 +84,10 @@
           path: "/comments",
           icon: "fa-commenting-o",
         }, {
+          title: "所有商品浏览",
+          path: "/goods",
+          icon: "fa-shopping-cart",
+        }, {
           title: "查看购物车",
           path: "/cart",
           icon: "fa-shopping-cart",

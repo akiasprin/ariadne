@@ -36,16 +36,23 @@
                   </template>
                 </el-table-column>
                 <el-table-column
-                  prop="total"
+                  prop="pivot.quantity"
                   label="数量"
                   width="80">
                 </el-table-column>
                 <el-table-column
                   prop="price"
-                  label="价格"
-                  width="150">
+                  label="单价"
+                  width="120">
                   <template scope="props">
                     ￥{{props.row.price}}
+                  </template>
+                </el-table-column>
+                <el-table-column
+                  label="小计"
+                  width="120">
+                  <template scope="props">
+                    ￥{{props.row.price*props.row.pivot.quantity}}
                   </template>
                 </el-table-column>
               </el-table>

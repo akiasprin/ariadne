@@ -48,6 +48,7 @@ class CommentController extends Controller
             $comment->save();
             $comment->user; $comment->good;
             RedisCacheHelper::clean([
+                'good:'.$comment->good_id,
                 'comments:0*',
                 'comments:'.$comment->user_id.'*'
             ]);
